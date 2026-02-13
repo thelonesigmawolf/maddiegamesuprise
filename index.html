@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Super Maddie Bros</title>
+    <style>
+        body { margin: 0; background: #5C94FC; font-family: 'Courier New', sans-serif; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        #game-container { position: relative; border: 8px solid #000; box-shadow: 0 10px 0 #222; }
+        canvas { background: #5C94FC; display: block; image-rendering: pixelated; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+        button { padding: 15px 30px; font-size: 24px; background: #ff5e4d; color: white; border: none; cursor: pointer; border-bottom: 5px solid #b12d1f; font-family: 'Courier New', monospace; font-weight: bold; }
+        .quiz-box { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #f8b800; padding: 30px; border: 6px solid #000; text-align: center; width: 350px; box-shadow: 10px 10px 0 rgba(0,0,0,0.2); }
+        input { padding: 10px; margin: 15px 0; width: 80%; border: 3px solid #000; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="overlay">
+        <h1 style="color: #f8b800; font-size: 45px; text-shadow: 4px 4px 0 #000;">SUPER MADDIE BROS</h1>
+        <button id="startBtn">1 PLAYER START</button>
+    </div>
+    <div id="quizBox" class="quiz-box">
+        <h2 id="qTitle">QUESTION</h2>
+        <p id="questionText" style="font-weight: bold;"></p>
+        <input type="text" id="answerInput" autofocus>
+        <br>
+        <button onclick="checkAnswer()">SUBMIT</button>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const startBtn = document.getElementById("startBtn");
+const overlay = document.getElementById("overlay");
+const quizBox = document.getElementById("quizBox");
+const questionText = document.getElementById("questionText");
+const answerInput = document.getElementById("answerInput");
+
+let gameActive = false;
+let currentQuestion = 0;
+const gravity = 0.6;
+const player = { x: 50, y: 300, w: 30, h: 35, dy: 0, speed: 5, jumping: false };
+
+const platforms = [
+    { x: 0, y: 350, w: 250, h: 50 },    // Ground
+    { x: 300, y: 270, w: 80, h: 30 },   // Float 1
+    { x: 450, y: 200, w: 80, h: 30 },   // Float 2
+    { x: 600, y: 270, w: 80, h: 30 },   // Float 3
+    { x: 720, y: 200, w: 80, h: 200 }   // Final Stand
+];
+
+const questions = [
+    { q: "Where did we meet?", a: "sole" },
+    { q: "The restaurant of our first official date?", a: "em bop" },
+    { q: "The name of the festival we went to?", a: "fall festival" }
+];
+
+const keys = {};
+window.addEventListener("keydown", e => keys[e.code] = true);
+window.addEventListener("keyup", e => keys[e.code] = false);
+
+startBtn.addEventListener("click", () => {
+    overlay.style.display = "none";
+    alert("Hello Maddie! Complete the parkour for a surprise!");
+    gameActive = true;
+    update();
+});
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Grass/Ground
+    platforms.forEach(p => {
+        ctx.fillStyle = "#885010"; // Dirt
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.fillStyle = "#469408"; // Grass Top
+        ctx.fillRect(p.x, p.y, p.w, 8);
+    });
+
+    // Draw Flag/Goal at the end
+    ctx.fillStyle = "white";
+    ctx.fillRect(755, 100, 5, 100);
+    ctx.fillStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(755, 100);
+    ctx.lineTo(720, 120);
+    ctx.lineTo(755, 140);
+    ctx.fill();
+
+    // Draw Player
+    ctx.fillStyle = "#ff5e4d"; // Mario Red
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+    ctx.fillStyle = "blue"; // Overalls
+    ctx.fillRect(player.x, player.y + 20, player.w, 15);
+}
+
+function update() {
+    if (!gameActive) return;
+    if (keys["ArrowRight"]) player.x += player.speed;
+    if (keys["ArrowLeft"]) player.x -= player.speed;
+    if (keys["Space"] && !player.jumping) { player.dy = -13; player.jumping = true; }
+
+    player.dy += gravity;
+    player.y += player.dy;
+
+    let onPlatform = false;
+    platforms.forEach(p => {
+        if (player.x + player.w > p.x && player.x < p.x + p.w &&
+            player.y + player.h > p.y && player.y + player.h < p.y + player.dy + 10) {
+            player.y = p.y - player.h; player.dy = 0; player.jumping = false; onPlatform = true;
+        }
+    });
+
+    if (player.y > canvas.height) { player.x = 50; player.y = 300; } // Reset on fall
+
+    if (player.x > 720 && player.y < 250) {
+        gameActive = false;
+        quizBox.style.display = "block";
+        showQuestion();
+    }
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+function showQuestion() {
+    if (currentQuestion < questions.length) {
+        questionText.innerText = questions[currentQuestion].q;
+        answerInput.value = "";
+        answerInput.focus();
+    } else {
+        quizBox.innerHTML = "<h1 style='font-size:40px'>YOU WIN!</h1><p style='font-size:20px'>Congrats! You have won a surprise! 🎁</p>";
+    }
+}
+
+function checkAnswer() {
+    if (answerInput.value.toLowerCase().trim() === questions[currentQuestion].a) {
+        currentQuestion++;
+        showQuestion();
+    } else {
+        alert("Not quite! Try again!");
+    }
+}
+</script>
+</body>
+</html>
