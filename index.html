@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Super Maddie Bros</title>
+    <title>Princess Maddie Adventure</title>
     <style>
         body { margin: 0; background: #5C94FC; font-family: 'Courier New', sans-serif; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
         #game-container { position: relative; border: 8px solid #000; box-shadow: 0 10px 0 #222; }
         canvas { background: #5C94FC; display: block; image-rendering: pixelated; }
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
-        button { padding: 15px 30px; font-size: 24px; background: #ff5e4d; color: white; border: none; cursor: pointer; border-bottom: 5px solid #b12d1f; font-family: 'Courier New', monospace; font-weight: bold; }
-        .quiz-box { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #f8b800; padding: 30px; border: 6px solid #000; text-align: center; width: 350px; box-shadow: 10px 10px 0 rgba(0,0,0,0.2); }
-        input { padding: 10px; margin: 15px 0; width: 80%; border: 3px solid #000; font-size: 18px; }
+        button { padding: 12px 20px; font-size: 18px; background: #FF69B4; color: white; border: none; cursor: pointer; border-bottom: 4px solid #D02090; font-family: 'Courier New', monospace; font-weight: bold; margin: 5px; width: 200px; }
+        button:hover { background: #ff85c1; }
+        .quiz-box { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #FFF0F5; padding: 25px; border: 6px solid #FF69B4; text-align: center; width: 400px; box-shadow: 10px 10px 0 rgba(0,0,0,0.2); }
+        #choices-container { display: flex; flex-direction: column; align-items: center; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -18,15 +19,13 @@
 <div id="game-container">
     <canvas id="gameCanvas" width="800" height="400"></canvas>
     <div id="overlay">
-        <h1 style="color: #f8b800; font-size: 45px; text-shadow: 4px 4px 0 #000;">SUPER MADDIE BROS</h1>
-        <button id="startBtn">1 PLAYER START</button>
+        <h1 style="color: #FF69B4; font-size: 45px; text-shadow: 4px 4px 0 #000;">PRINCESS MADDIE BROS</h1>
+        <button id="startBtn" style="width: 250px;">START ADVENTURE</button>
     </div>
     <div id="quizBox" class="quiz-box">
-        <h2 id="qTitle">QUESTION</h2>
-        <p id="questionText" style="font-weight: bold;"></p>
-        <input type="text" id="answerInput" autofocus>
-        <br>
-        <button onclick="checkAnswer()">SUBMIT</button>
+        <h2 style="color: #D02090;">QUESTION</h2>
+        <p id="questionText" style="font-weight: bold; font-size: 18px;"></p>
+        <div id="choices-container"></div>
     </div>
 </div>
 
@@ -37,25 +36,25 @@ const startBtn = document.getElementById("startBtn");
 const overlay = document.getElementById("overlay");
 const quizBox = document.getElementById("quizBox");
 const questionText = document.getElementById("questionText");
-const answerInput = document.getElementById("answerInput");
+const choicesContainer = document.getElementById("choices-container");
 
 let gameActive = false;
 let currentQuestion = 0;
 const gravity = 0.6;
-const player = { x: 50, y: 300, w: 30, h: 35, dy: 0, speed: 5, jumping: false };
+const player = { x: 50, y: 300, w: 30, h: 45, dy: 0, speed: 5, jumping: false };
 
 const platforms = [
-    { x: 0, y: 350, w: 250, h: 50 },    // Ground
-    { x: 300, y: 270, w: 80, h: 30 },   // Float 1
-    { x: 450, y: 200, w: 80, h: 30 },   // Float 2
-    { x: 600, y: 270, w: 80, h: 30 },   // Float 3
-    { x: 720, y: 200, w: 80, h: 200 }   // Final Stand
+    { x: 0, y: 350, w: 250, h: 50 },    
+    { x: 300, y: 270, w: 100, h: 30 },   
+    { x: 450, y: 190, w: 100, h: 30 },   
+    { x: 620, y: 270, w: 100, h: 30 },   
+    { x: 740, y: 180, w: 60, h: 220 }   
 ];
 
 const questions = [
-    { q: "Where did we meet?", a: "sole" },
-    { q: "The restaurant of our first official date?", a: "em bop" },
-    { q: "The name of the festival we went to?", a: "fall festival" }
+    { q: "Where did we meet?", a: "sole", options: ["The Park", "sole", "The Mall", "School"] },
+    { q: "Name of the restaurant on our first official date?", a: "em bop", options: ["Chipotle", "Pizza Hut", "em bop", "The Diner"] },
+    { q: "What is the name of the festival we went to?", a: "fall festival", options: ["Summer Bash", "fall festival", "Winter Lights", "Spring Fair"] }
 ];
 
 const keys = {};
@@ -64,37 +63,53 @@ window.addEventListener("keyup", e => keys[e.code] = false);
 
 startBtn.addEventListener("click", () => {
     overlay.style.display = "none";
-    alert("Hello Maddie! Complete the parkour for a surprise!");
+    alert("Hello Maddie! Complete this for a surprise!");
     gameActive = true;
     update();
 });
 
+function drawPlayer(x, y) {
+    // Hair (Blonde)
+    ctx.fillStyle = "#FFD700";
+    ctx.fillRect(x, y, 30, 15);
+    // Face
+    ctx.fillStyle = "#FFE4C4";
+    ctx.fillRect(x + 5, y + 5, 20, 15);
+    // Eyes
+    ctx.fillStyle = "black";
+    ctx.fillRect(x + 18, y + 10, 3, 3);
+    // Dress (Pink)
+    ctx.fillStyle = "#FF69B4";
+    ctx.beginPath();
+    ctx.moveTo(x, y + 45);
+    ctx.lineTo(x + 15, y + 20);
+    ctx.lineTo(x + 30, y + 45);
+    ctx.fill();
+    // Crown
+    ctx.fillStyle = "gold";
+    ctx.fillRect(x + 10, y - 3, 10, 5);
+}
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Scenery
+    ctx.fillStyle = "white"; // Clouds
+    ctx.fillRect(100, 50, 60, 20); ctx.fillRect(400, 80, 80, 25);
 
-    // Draw Grass/Ground
     platforms.forEach(p => {
-        ctx.fillStyle = "#885010"; // Dirt
-        ctx.fillRect(p.x, p.y, p.w, p.h);
-        ctx.fillStyle = "#469408"; // Grass Top
-        ctx.fillRect(p.x, p.y, p.w, 8);
+        ctx.fillStyle = "#8B4513"; ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.fillStyle = "#32CD32"; ctx.fillRect(p.x, p.y, p.w, 8);
     });
 
-    // Draw Flag/Goal at the end
-    ctx.fillStyle = "white";
-    ctx.fillRect(755, 100, 5, 100);
-    ctx.fillStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(755, 100);
-    ctx.lineTo(720, 120);
-    ctx.lineTo(755, 140);
-    ctx.fill();
+    // Goal
+    ctx.fillStyle = "gold";
+    ctx.fillRect(750, 140, 40, 40);
+    ctx.fillStyle = "black";
+    ctx.font = "bold 12px Arial";
+    ctx.fillText("FINISH", 750, 130);
 
-    // Draw Player
-    ctx.fillStyle = "#ff5e4d"; // Mario Red
-    ctx.fillRect(player.x, player.y, player.w, player.h);
-    ctx.fillStyle = "blue"; // Overalls
-    ctx.fillRect(player.x, player.y + 20, player.w, 15);
+    drawPlayer(player.x, player.y);
 }
 
 function update() {
@@ -106,17 +121,16 @@ function update() {
     player.dy += gravity;
     player.y += player.dy;
 
-    let onPlatform = false;
     platforms.forEach(p => {
         if (player.x + player.w > p.x && player.x < p.x + p.w &&
             player.y + player.h > p.y && player.y + player.h < p.y + player.dy + 10) {
-            player.y = p.y - player.h; player.dy = 0; player.jumping = false; onPlatform = true;
+            player.y = p.y - player.h; player.dy = 0; player.jumping = false;
         }
     });
 
-    if (player.y > canvas.height) { player.x = 50; player.y = 300; } // Reset on fall
+    if (player.y > canvas.height) { player.x = 50; player.y = 300; }
 
-    if (player.x > 720 && player.y < 250) {
+    if (player.x > 730 && player.y < 200) {
         gameActive = false;
         quizBox.style.display = "block";
         showQuestion();
@@ -128,20 +142,26 @@ function update() {
 
 function showQuestion() {
     if (currentQuestion < questions.length) {
-        questionText.innerText = questions[currentQuestion].q;
-        answerInput.value = "";
-        answerInput.focus();
+        const item = questions[currentQuestion];
+        questionText.innerText = item.q;
+        choicesContainer.innerHTML = "";
+        item.options.forEach(opt => {
+            const btn = document.createElement("button");
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt);
+            choicesContainer.appendChild(btn);
+        });
     } else {
-        quizBox.innerHTML = "<h1 style='font-size:40px'>YOU WIN!</h1><p style='font-size:20px'>Congrats! You have won a surprise! 🎁</p>";
+        quizBox.innerHTML = "<h1 style='color:#D02090'>CONGRATS!</h1><p style='font-size:20px'>You won a surprise! 🎁</p>";
     }
 }
 
-function checkAnswer() {
-    if (answerInput.value.toLowerCase().trim() === questions[currentQuestion].a) {
+function checkAnswer(selected) {
+    if (selected === questions[currentQuestion].a) {
         currentQuestion++;
         showQuestion();
     } else {
-        alert("Not quite! Try again!");
+        alert("Oops! Try again, Princess!");
     }
 }
 </script>
