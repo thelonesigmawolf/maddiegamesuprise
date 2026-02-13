@@ -52,9 +52,9 @@ const platforms = [
 ];
 
 const questions = [
-    { q: "Where did we meet?", a: "Sole", options: ["The Park", "Sole", "Mellow Mushroom", "School"] },
-    { q: "Name of the restaurant on our first official date?", a: "Em Bop", options: ["Chipotle", "Whataburger", "Em bop", "Wingstop"] },
-    { q: "What is the name of the festival we went to?", a: "fall festival", options: ["Summer Bash", "Fall festival", "Winter Lights", "Fall Fair"] }
+    { q: "Where did we meet?", a: "Sole", options: ["The Park", "Sole", "The Mall", "School"] },
+    { q: "Name of the restaurant on our first official date?", a: "Em bop", options: ["Chipotle", "Pizza Hut", "Em bop", "The Diner"] },
+    { q: "What is the name of the festival we went to?", a: "Fall Festival", options: ["Summer Bash", "Fall Festival", "Winter Lights", "Spring Fair"] }
 ];
 
 const keys = {};
@@ -88,28 +88,6 @@ function drawPlayer(x, y) {
     // Crown
     ctx.fillStyle = "gold";
     ctx.fillRect(x + 10, y - 3, 10, 5);
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Scenery
-    ctx.fillStyle = "white"; // Clouds
-    ctx.fillRect(100, 50, 60, 20); ctx.fillRect(400, 80, 80, 25);
-
-    platforms.forEach(p => {
-        ctx.fillStyle = "#8B4513"; ctx.fillRect(p.x, p.y, p.w, p.h);
-        ctx.fillStyle = "#32CD32"; ctx.fillRect(p.x, p.y, p.w, 8);
-    });
-
-    // Goal
-    ctx.fillStyle = "gold";
-    ctx.fillRect(750, 140, 40, 40);
-    ctx.fillStyle = "black";
-    ctx.font = "bold 12px Arial";
-    ctx.fillText("FINISH", 750, 130);
-
-    drawPlayer(player.x, player.y);
 }
 
 function draw() {
